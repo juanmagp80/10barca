@@ -2,12 +2,15 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import LastLiveStream from './components/NewsCards/LastLiveStream/LastLiveStream';
 import NewsCards from './components/NewsCards/NewsCards';
 import './globals.css';
 
 export default function RootLayout({ children }) {
   const [scrolled, setScrolled] = useState(false);
   const [showSections, setShowSections] = useState(false);
+  const channelId = 'UC4eDUzl7Ik9TlkltsqCXvDA'; // Reemplaza con el ID del canal que quieras monitorear
+  const apiKey = 'AIzaSyDmimsZc0j8wpKHEuhaSSD9xMKYma2mqoM'; // Reemplaza con tu API Key
 
   useEffect(() => {
     const handleScroll = () => {
@@ -94,6 +97,7 @@ export default function RootLayout({ children }) {
             <p className="text-3xl">La mejor información diaria sobre el FC Barcelona.</p>
           </div>
         </header>
+        <LastLiveStream channelId={channelId} apiKey={apiKey} />
         <NewsCards />
 
         <main>{children}</main>
