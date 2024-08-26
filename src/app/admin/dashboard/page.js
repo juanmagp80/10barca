@@ -1,34 +1,42 @@
-// src/app/admin/dashboard/page.js
-'use client';
-
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+"use client";
+import { useState } from 'react';
 import { supabase } from '../../../../lib/supabaseClient';
 
-export default function DashboardPage() {
-    const [user, setUser] = useState(null);
-    const router = useRouter();
+export default function AddNews() {
+    const [title, setTitle] = useState('');
+    const [content, setContent] = useState('');
+    const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const session = supabase.auth.getSession();
-        if (!session.data?.session) {
-            router.push('/admin/login');
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        const { data, error } = await supabase.from('news').insert([
+            { title, content, editor_name: 'Redactor Ejemplo' },
+        ]);
+
+        if (error) {
+            setError(error.message);
         } else {
-            setUser(session.data.session.user);
+            setTitle('');
+            setContent('');
         }
-    }, [router]);
-
-    const handleLogout = async () => {
-        await supabase.auth.signOut();
-        router.push('/admin/login');
     };
 
-    return user ? (
-        <div>
-            <h1>Panel de Administración</h1>
-            <button onClick={handleLogout}>Cerrar Sesión</button>
-        </div>
-    ) : (
-        <p>Cargando...</p>
+    return (
+        <form onSubmit={handleSubmit}>
+            <input
+                type="text"
+                placeholder="Título"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+            />
+            <textarea
+                placeholder="Contenido"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+            ></textarea>
+            <button type="submit">Agregar Noticia</button>
+            {error && <p>{error}</p>}
+        </form>
     );
 }
