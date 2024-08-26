@@ -1,4 +1,6 @@
-"use client";
+// src/app/layout.js
+"use client"; // Asegúrate de que este archivo se ejecute en el cliente
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -10,7 +12,7 @@ export default function RootLayout({ children }) {
   const [scrolled, setScrolled] = useState(false);
   const [showSections, setShowSections] = useState(false);
   const channelId = 'UC4eDUzl7Ik9TlkltsqCXvDA'; // Reemplaza con el ID del canal que quieras monitorear
-  const apiKey = 'AIzaSyDmimsZc0j8wpKHEuhaSSD9xMKYma2mqoM'; // Reemplaza con tu API Key
+  const apiKey = 'AIzaSyDZpUaV17D0sKlrJdsRuXywswm0gbOrWRM'; // Reemplaza con tu API Key
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,7 +29,6 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang="en">
-
       <head>
         <link
           rel="stylesheet"
@@ -54,6 +55,9 @@ export default function RootLayout({ children }) {
               <ul className="flex space-x-6 font-dosis text-2xl items-center">
                 <li>
                   <Link href="/" className="hover:text-red-500 transition-colors">Inicio</Link>
+                </li>
+                <li>
+                  <Link href="/team" className="hover:text-red-500 transition-colors">Nuestro Equipo</Link>
                 </li>
                 <li>
                   <Link href="/about" className="hover:text-red-500 transition-colors">Noticias Primer Equipo</Link>
@@ -97,10 +101,12 @@ export default function RootLayout({ children }) {
             <p className="text-3xl">La mejor información diaria sobre el FC Barcelona.</p>
           </div>
         </header>
-        <LastLiveStream channelId={channelId} apiKey={apiKey} />
-        <NewsCards />
-
-        <main>{children}</main>
+        {/* Asegúrate de que los componentes secundarios se renderizan aquí */}
+        <main>
+          <LastLiveStream channelId={channelId} apiKey={apiKey} />
+          <NewsCards />
+          {children}
+        </main>
       </body>
     </html>
   );
