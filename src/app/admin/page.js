@@ -1,96 +1,88 @@
-// src/app/admin/page.js
-"use client"
-import { signIn, signOut, useSession } from 'next-auth/react';
+// app/admin/page.js
+"use client";
 import { useState } from 'react';
+import { supabase } from '../../../lib/supabaseClient';
 
-export default function AdminPage() {
-    const { data: session, status } = useSession();
+export default function CreateNews() {
     const [title, setTitle] = useState('');
-    const [imageUrl, setImageUrl] = useState('');
+    const [imageFile, setImageFile] = useState(null);
     const [content, setContent] = useState('');
     const [author, setAuthor] = useState('');
-    const [message, setMessage] = useState('');
+    const [createdAt, setCreatedAt] = useState('');
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleCreateNews = async () => {
+        let imageUrl = '';
 
-        const response = await fetch('/api/news', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ title, imageUrl, content, author }),
-        });
+        if (imageFile) {
+            const { data, error: uploadError } = await supabase
+                .storage
+                .from('images')
+                .upload(`public/${imageFile.name}`, imageFile);
 
-        const result = await response.json();
+            if (uploadError) {
+                console.error('Error al subir la imagen:', uploadError.message);
+                return;
+            }
 
-        if (response.ok) {
-            setMessage('Noticia creada exitosamente');
+            imageUrl = data.path;
+        }
+
+        const { error } = await supabase
+            .from('news')
+            .insert([{ title, image_url: imageUrl, content, author, created_at: createdAt }]);
+
+        if (error) {
+            console.error('Error al crear la noticia:', error.message);
+        } else {
             setTitle('');
-            setImageUrl('');
+            setImageFile(null);
             setContent('');
             setAuthor('');
-        } else {
-            setMessage(`Error: ${result.error}`);
+            setCreatedAt('');
+            alert('Noticia creada con éxito');
         }
     };
 
-    if (status === 'loading') {
-        return <p>Cargando...</p>;
-    }
-
-    if (!session) {
-        return (
-            <div>
-                <p>Debes iniciar sesión para acceder a esta página.</p>
-                <button onClick={() => signIn()}>Iniciar Sesión</button>
-            </div>
-        );
-    }
-
     return (
-        <div>
-            <button onClick={() => signOut()}>Cerrar Sesión</button>
-            <h1>Panel de Administración</h1>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Título</label>
-                    <input
-                        type="text"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        required
-                    />
-                </div>
-                <div>
-                    <label>URL de la Imagen</label>
-                    <input
-                        type="text"
-                        value={imageUrl}
-                        onChange={(e) => setImageUrl(e.target.value)}
-                        required
-                    />
-                </div>
-                <div>
-                    <label>Contenido</label>
-                    <textarea
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                        required
-                    />
-                </div>
-                <div>
-                    <label>Autor</label>
-                    <input
-                        type="text"
-                        value={author}
-                        onChange={(e) => setAuthor(e.target.value)}
-                        required
-                    />
-                </div>
-                <button type="submit">Crear Noticia</button>
-            </form>
-            {message && <p>{message}</p>}
+        <div className="max-w-lg mx-auto p-6 border border-gray-300 rounded-lg">
+            <h1 className="text-2xl font-bold text-center mb-4">Crear Noticia</h1>
+            <input
+                type="text"
+                placeholder="Título"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full p-2 mb-4 border border-gray-300 rounded-lg"
+            />
+            <input
+                type="file"
+                onChange={(e) => setImageFile(e.target.files[0])}
+                className="w-full p-2 mb-4 border border-gray-300 rounded-lg"
+            />
+            <textarea
+                placeholder="Contenido"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                className="w-full p-2 mb-4 border border-gray-300 rounded-lg"
+            />
+            <input
+                type="text"
+                placeholder="Autor"
+                value={author}
+                onChange={(e) => setAuthor(e.target.value)}
+                className="w-full p-2 mb-4 border border-gray-300 rounded-lg"
+            />
+            <input
+                type="datetime-local"
+                value={createdAt}
+                onChange={(e) => setCreatedAt(e.target.value)}
+                className="w-full p-2 mb-4 border border-gray-300 rounded-lg"
+            />
+            <button
+                onClick={handleCreateNews}
+                className="w-full p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            >
+                Crear Noticia
+            </button>
         </div>
     );
 }
