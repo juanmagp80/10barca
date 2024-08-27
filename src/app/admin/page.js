@@ -1,6 +1,6 @@
 // app/admin/page.js
 "use client";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 
 export default function CreateNews() {
@@ -9,6 +9,21 @@ export default function CreateNews() {
     const [content, setContent] = useState('');
     const [author, setAuthor] = useState('');
     const [createdAt, setCreatedAt] = useState('');
+    const [user, setUser] = useState(null);
+
+    useEffect(() => {
+        const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+            setUser(session?.user);
+        });
+
+        if (!user) {
+            window.location.href = '/admin/login';
+        }
+
+        return () => {
+            authListener.unsubscribe();
+        };
+    }, [user]);
 
     const handleCreateNews = async () => {
         let imageUrl = '';
