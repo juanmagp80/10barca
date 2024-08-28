@@ -11,7 +11,7 @@ import NewsCards from './components/NewsCards/NewsCards';
 import { UserProvider } from './context/UserContext';
 import './globals.css';
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children, }) {
   const [user, setUser] = useState(null);
 
   const [scrolled, setScrolled] = useState(false);

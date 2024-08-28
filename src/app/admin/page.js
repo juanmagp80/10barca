@@ -1,7 +1,15 @@
 "use client";
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import ReactQuill, { Quill } from 'react-quill';
+import 'react-quill/dist/quill.snow.css'; // importa los estilos de Quill
+
 import { supabase } from '../../../lib/supabaseClient';
+const fonts = ['sans-serif', 'serif', 'monospace', 'Arial', 'Courier', 'Times New Roman'];
+var Font = Quill.import('formats/font');
+Font.whitelist = fonts;
+Quill.register(Font, true);
+
 
 function CreateNewsModal({ onClose }) {
     const [title, setTitle] = useState('');
@@ -51,7 +59,7 @@ function CreateNewsModal({ onClose }) {
     };
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
                 <h1 className="text-2xl font-bold text-center mb-6">Crear Noticia</h1>
                 <form onSubmit={handleCreateNews} className="flex flex-col gap-4">
@@ -67,11 +75,16 @@ function CreateNewsModal({ onClose }) {
                         onChange={(e) => setImageFile(e.target.files[0])}
                         className="p-2 border border-gray-300 rounded"
                     />
-                    <textarea
-                        placeholder="Contenido"
+                    <ReactQuill
                         value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                        className="p-2 border border-gray-300 rounded min-h-[100px]"
+                        onChange={setContent}
+                        modules={{
+                            toolbar: [
+                                [{ 'font': fonts }],
+                                // ... otras opciones de la barra de herramientas
+                            ]
+                        }}
+                        className="p-2 border border-gray-300 rounded quill-editor"
                     />
                     <input
                         type="text"

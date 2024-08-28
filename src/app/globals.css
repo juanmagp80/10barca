@@ -159,3 +159,6 @@ nav.text-white {
   max-width: 100%;
   margin-bottom: 16px;
 }
+.quill-editor {
+  height: 300px;
+}
