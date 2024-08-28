@@ -1,7 +1,6 @@
 // src/app/layout.js
 "use client"; // Asegúrate de que este archivo se ejecute en el cliente
 import { useEffect, useState } from 'react';
-import { auth } from '../../lib/firebaseClient';
 
 
 
@@ -31,13 +30,6 @@ export default function RootLayout({ children }) {
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, []);
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setUser(user);
-    });
-
-    return () => unsubscribe();
   }, []);
 
   return (
