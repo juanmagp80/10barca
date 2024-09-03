@@ -1,19 +1,13 @@
-"use client";
+'use client';
+
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import ReactQuill, { Quill } from 'react-quill';
-import 'react-quill/dist/quill.snow.css'; // importa los estilos de Quill
-
 import { supabase } from '../../../lib/supabaseClient';
-const fonts = ['sans-serif', 'serif', 'monospace', 'Arial', 'Courier', 'Times New Roman'];
-var Font = Quill.import('formats/font');
-Font.whitelist = fonts;
-Quill.register(Font, true);
-
 
 function CreateNewsModal({ onClose }) {
     const [title, setTitle] = useState('');
     const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState('');
     const [content, setContent] = useState('');
     const [author, setAuthor] = useState('');
     const [createdAt, setCreatedAt] = useState('');
@@ -58,50 +52,74 @@ function CreateNewsModal({ onClose }) {
         onClose();
     };
 
+    useEffect(() => {
+        if (imageFile) {
+            const reader = new FileReader();
+            reader.onloadend = () => setImagePreview(reader.result);
+            reader.readAsDataURL(imageFile);
+        } else {
+            setImagePreview('');
+        }
+    }, [imageFile]);
+
     return (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
-                <h1 className="text-2xl font-bold text-center mb-6">Crear Noticia</h1>
-                <form onSubmit={handleCreateNews} className="flex flex-col gap-4">
-                    <input
-                        type="text"
-                        placeholder="Título"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        className="p-2 border border-gray-300 rounded"
-                    />
-                    <input
-                        type="file"
-                        onChange={(e) => setImageFile(e.target.files[0])}
-                        className="p-2 border border-gray-300 rounded"
-                    />
-                    <ReactQuill
-                        value={content}
-                        onChange={setContent}
-                        modules={{
-                            toolbar: [
-                                [{ 'font': fonts }],
-                                // ... otras opciones de la barra de herramientas
-                            ]
-                        }}
-                        className="p-2 border border-gray-300 rounded quill-editor"
-                    />
-                    <input
-                        type="text"
-                        placeholder="Autor"
-                        value={author}
-                        onChange={(e) => setAuthor(e.target.value)}
-                        className="p-2 border border-gray-300 rounded"
-                    />
-                    <input
-                        type="date"
-                        value={createdAt}
-                        onChange={(e) => setCreatedAt(e.target.value)}
-                        className="p-2 border border-gray-300 rounded"
-                    />
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+            <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-2xl overflow-y-auto">
+                <h1 className="text-3xl font-semibold text-center mb-6">Crear Noticia</h1>
+                <form onSubmit={handleCreateNews} className="flex flex-col gap-6">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Título</label>
+                        <input
+                            type="text"
+                            placeholder="Títuloprueba"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            className="p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Imagen</label>
+                        <input
+                            type="file"
+                            onChange={(e) => setImageFile(e.target.files[0])}
+                            className="p-2 border border-gray-300 rounded-lg shadow-sm file:bg-blue-100 file:text-blue-800 file:border file:border-blue-300 file:rounded-md hover:file:bg-blue-200 w-full"
+                        />
+                        {imagePreview && (
+                            <div className="mt-4">
+                                <img src={imagePreview} alt="Preview" className="w-full h-auto rounded-md" />
+                            </div>
+                        )}
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Contenido</label>
+                        <textarea
+                            value={content}
+                            onChange={(e) => setContent(e.target.value)}
+                            className="h-60 p-2 border border-gray-300 rounded-lg shadow-sm w-full"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Autor</label>
+                        <input
+                            type="text"
+                            placeholder="Autor"
+                            value={author}
+                            onChange={(e) => setAuthor(e.target.value)}
+                            className="p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Fecha de Creación</label>
+                        <input
+                            type="date"
+                            value={createdAt}
+                            onChange={(e) => setCreatedAt(e.target.value)}
+                            className="p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                        />
+                    </div>
                     <button
                         type="submit"
-                        className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
                     >
                         Crear
                     </button>
@@ -113,29 +131,14 @@ function CreateNewsModal({ onClose }) {
 }
 
 export default function AdminPage() {
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [user, setUser] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
         const getUser = async () => {
-            const { data: { session }, error } = await supabase.auth.getSession();
-
-            if (error) {
-                console.error('Error fetching session:', error);
-                return;
-            }
-
-            if (!session) {
-                router.push('/admin/login');
-            } else {
-                console.log('Usuario autenticado:', session.user.email); // Para depuración
-                if (session.user.email === 'redactor@redactor.com') {
-                    setUser(session.user);
-                } else {
-                    router.push('/');
-                }
-            }
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
         };
 
         getUser();
@@ -150,28 +153,33 @@ export default function AdminPage() {
     const openModal = () => setIsModalOpen(true);
     const closeModal = () => setIsModalOpen(false);
 
+    if (typeof window === 'undefined') {
+        return null; // Evita renderizar en el servidor
+    }
+
     if (!user) {
         return <p>Cargando...</p>; // Muestra un mensaje de carga mientras se verifica la autenticación
     }
 
     return (
-        <div className="p-4">
-            <h1 className="text-3xl font-bold mb-4">Panel de Administración</h1>
-            <button
-                onClick={openModal}
-                className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-md"
-            >
-                Crear Nueva Noticia
-            </button>
-            <button
-                onClick={handleLogout}
-                className="bg-red-600 text-white font-semibold py-2 px-4 rounded-md ml-4"
-            >
-                Logout
-            </button>
+        <div className="p-6">
+            <h1 className="text-4xl font-bold mb-6">Panel de Administración</h1>
+            <div className="flex gap-4 mb-6">
+                <button
+                    onClick={openModal}
+                    className="bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg shadow hover:bg-blue-700 transition duration-200"
+                >
+                    Crear Nueva Noticia
+                </button>
+                <button
+                    onClick={handleLogout}
+                    className="bg-red-600 text-white font-semibold py-3 px-6 rounded-lg shadow hover:bg-red-700 transition duration-200"
+                >
+                    Logout
+                </button>
+            </div>
 
             {isModalOpen && <CreateNewsModal onClose={closeModal} />}
         </div>
     );
 }
-

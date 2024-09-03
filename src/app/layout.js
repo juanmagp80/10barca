@@ -1,19 +1,17 @@
-// src/app/layout.js
-"use client"; // Asegúrate de que este archivo se ejecute en el cliente
-import { useEffect, useState } from 'react';
-
-
-
+"use client"
 import Image from 'next/image';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import NewsCards from '././components/NewsCards/NewsCards';
+import UserProvider from '././context/UserContext';
 import LastLiveStream from './components/NewsCards/LastLiveStream/LastLiveStream';
-import NewsCards from './components/NewsCards/NewsCards';
-import { UserProvider } from './context/UserContext';
 import './globals.css';
 
-export default function RootLayout({ children, }) {
-  const [user, setUser] = useState(null);
+export function Layout() {
+  // Tu código aquí
+}
 
+export default function RootLayout({ children }) {
   const [scrolled, setScrolled] = useState(false);
   const [showSections, setShowSections] = useState(false);
   const channelId = 'UC4eDUzl7Ik9TlkltsqCXvDA'; // Reemplaza con el ID del canal que quieras monitorear
@@ -63,16 +61,16 @@ export default function RootLayout({ children, }) {
                     <Link href="/" className="hover:text-red-500 transition-colors">Inicio</Link>
                   </li>
                   <li>
-                    <Link href="/team" className="hover:text-red-500 transition-colors">Nuestro Equipo</Link>
+                    <Link href="/team" className="hover:text-red-500 transition-colors">Nuestro Equipo2</Link>
                   </li>
                   <li>
                     <Link href="/about" className="hover:text-red-500 transition-colors">Noticias Primer Equipo</Link>
                   </li>
                   <li>
-                    <Link href="/services" className="hover:text-red-500 transition-colors">Opinión y Analisis</Link>
+                    <Link href="/services" className="hover:text-red-500 transition-colors">Opinión y Análisis</Link>
                   </li>
                   <li>
-                    <Link href="/contact" className="hover:text-red-500 transition-colors">Barca Atlétic</Link>
+                    <Link href="/contact" className="hover:text-red-500 transition-colors">Barça Atlético</Link>
                   </li>
                   <li className="relative">
                     <button
@@ -104,17 +102,15 @@ export default function RootLayout({ children, }) {
             </nav>
             <div className="absolute top-1/2 left-1/4 transform -translate-x-1/2 -translate-y-1/2 text-center text-white z-10">
               <h1 className="text-7xl font-bold mb-4 leading-tight">El 10 del Barça</h1>
-              <p className="text-3xl">La mejor información diaria sobre el FC Barcelona.</p>
+              <p className="text-3xl">La mejor informacifgdfgdfón diaria sobre el FC Barcelona.</p>
             </div>
           </header>
-          {/* Asegúrate de que los componentes secundarios se renderizan aquí */}
           <main>
             <LastLiveStream channelId={channelId} apiKey={apiKey} />
             <NewsCards />
             {children}
           </main>
         </UserProvider>
-
       </body>
     </html>
   );

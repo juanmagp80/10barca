@@ -5,7 +5,7 @@ import { supabase } from '../../../lib/supabaseClient';
 
 const UserContext = createContext(null);
 
-export function UserProvider({ children }) {
+export default function UserProvider({ children }) {
     const [user, setUser] = useState(null);
 
     useEffect(() => {

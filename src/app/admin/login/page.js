@@ -1,13 +1,18 @@
 "use client";
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../../../../lib/supabaseClient';
 
 export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [isClient, setIsClient] = useState(false);
     const router = useRouter();
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -28,6 +33,10 @@ export default function Login() {
         router.push('/'); // Cambia la ruta a la que quieras redirigir al cerrar el modal
     };
 
+    if (!isClient) {
+        return null; // Evita renderizar en el servidor
+    }
+
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md relative">
@@ -40,7 +49,7 @@ export default function Login() {
                     &#x2715; {/* Símbolo de cerrar (X) */}
                 </button>
 
-                <h1 className="text-2xl font-semibold text-center mb-6">Login</h1>
+                <h1 className="text-2xl font-semibold text-center mb-6">Login prueba</h1>
                 <form onSubmit={handleLogin} className="space-y-6">
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium text-gray-700">

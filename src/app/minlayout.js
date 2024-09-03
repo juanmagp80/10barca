@@ -1,4 +1,5 @@
-"use client";
+"use client"; // Asegúrate de que este archivo se ejecute en el cliente
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -8,7 +9,6 @@ import './globals.css';
 export default function RootLayout({ children }) {
     const [scrolled, setScrolled] = useState(false);
     const [showSections, setShowSections] = useState(false);
-
 
     useEffect(() => {
         const handleScroll = () => {
@@ -24,8 +24,7 @@ export default function RootLayout({ children }) {
     }, []);
 
     return (
-        <html lang="en">
-
+        <>
             <head>
                 <link
                     rel="stylesheet"
@@ -60,10 +59,10 @@ export default function RootLayout({ children }) {
                                     <Link href="/about" className="hover:text-red-500 transition-colors">Noticias Primer Equipo</Link>
                                 </li>
                                 <li>
-                                    <Link href="/services" className="hover:text-red-500 transition-colors">Opinión y Analisis</Link>
+                                    <Link href="/services" className="hover:text-red-500 transition-colors">Opinión y Análisis</Link>
                                 </li>
                                 <li>
-                                    <Link href="/contact" className="hover:text-red-500 transition-colors">Barca Atlétic</Link>
+                                    <Link href="/contact" className="hover:text-red-500 transition-colors">Barça Atlético</Link>
                                 </li>
                                 <li className="relative">
                                     <button
@@ -98,10 +97,11 @@ export default function RootLayout({ children }) {
                         <p className="text-3xl">La mejor información diaria sobre el FC Barcelona.</p>
                     </div>
                 </header>
-                <main>{children}</main>
+                <main>
+                    {children}
+                </main>
                 <NewsCards />
-
             </body>
-        </html>
+        </>
     );
 }
