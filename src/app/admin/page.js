@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { supabase } from '../../../lib/supabaseClient';
+import { supabase } from '../../../lib/supabaseClient'; // Ajusta la ruta si es necesario
 
 function AdminPage() {
     const [user, setUser] = useState(null);
@@ -11,17 +11,23 @@ function AdminPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentNews, setCurrentNews] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(null);
+    const [form, setForm] = useState({
+        title: '',
+        imageFile: null,
+        imagePreview: '',
+        content: '',
+        author: '',
+        createdAt: ''
+    });
+    const [message, setMessage] = useState('');
     const router = useRouter();
 
     useEffect(() => {
         const getUser = async () => {
             try {
                 const { data, error } = await supabase.auth.getUser();
-                if (error) {
-                    throw error;
-                }
+                if (error) throw error;
                 setUser(data.user);
-                console.log("Usuario obtenido:", data.user);
             } catch (error) {
                 console.error('Error obteniendo usuario:', error.message);
                 router.push('/admin/login');
@@ -31,15 +37,15 @@ function AdminPage() {
         };
 
         const fetchNews = async () => {
-            const { data, error } = await supabase
-                .from('news')
-                .select('*');
+            try {
+                const { data, error } = await supabase
+                    .from('news')
+                    .select('*');
 
-            if (error) {
-                console.error('Error fetching news:', error.message);
-            } else {
+                if (error) throw error;
                 setNews(data);
-                console.log("Noticias obtenidas:", data);
+            } catch (error) {
+                console.error('Error fetching news:', error.message);
             }
         };
 
@@ -47,21 +53,94 @@ function AdminPage() {
         fetchNews();
     }, [router]);
 
+
     const handleLogout = async () => {
         const { error } = await supabase.auth.signOut();
-        if (error) console.error('Error signing out:', error);
-        router.push('/admin/login');
+        if (error) {
+            console.error('Error signing out:', error.message);
+        }
+        router.push('/'); // Redirige a la página de inicio
     };
 
-    const openModal = (newsItem = null) => {
-        setCurrentNews(newsItem);
-        setIsModalOpen(true);
+
+    const handleChange = (e) => {
+        const { name, value, type, files } = e.target;
+        setForm({
+            ...form,
+            [name]: type === 'file' ? files[0] : value
+        });
+        if (name === 'imageFile' && files[0]) {
+            const reader = new FileReader();
+            reader.onloadend = () => setForm({ ...form, imagePreview: reader.result });
+            reader.readAsDataURL(files[0]);
+        }
     };
 
-    const closeModal = () => {
-        setCurrentNews(null);
-        setIsModalOpen(false);
+    const handleSaveNews = async (e) => {
+        e.preventDefault();
+        const { title, imageFile, imagePreview, content, author, createdAt } = form;
+        let imageUrl = imagePreview;
+
+        if (imageFile) {
+            try {
+                const { data, error: uploadError } = await supabase
+                    .storage
+                    .from('images')
+                    .upload(`public/${imageFile.name}`, imageFile);
+
+                if (uploadError) throw uploadError;
+
+                imageUrl = data.path; // Obtén la URL de la imagen
+            } catch (error) {
+                console.error('Error al subir la imagen:', error.message);
+                setMessage('Error al subir la imagen');
+                return;
+            }
+        }
+
+        let result;
+        try {
+            if (currentNews) {
+                // Actualizar noticia existente
+                result = await supabase
+                    .from('news')
+                    .update({ title, image_url: imageUrl, content, author, created_at: createdAt })
+                    .eq('id', currentNews.id);
+            } else {
+                // Insertar nueva noticia
+                result = await supabase
+                    .from('news')
+                    .insert([{ title, image_url: imageUrl, content, author, created_at: createdAt }]);
+            }
+
+            // Log de la respuesta para depuración
+            console.log('Resultado de la operación de Supabase:', result);
+
+            if (result.error) throw result.error;
+
+            // Asegúrate de que la respuesta contiene datos
+            if (result.data && result.data.length > 0) {
+                setMessage('Noticia guardada exitosamente');
+                setNews(currentNews ? news.map(n => n.id === result.data[0].id ? result.data[0] : n) : [...news, result.data[0]]);
+                setForm({
+                    title: '',
+                    imageFile: null,
+                    imagePreview: '',
+                    content: '',
+                    author: '',
+                    createdAt: ''
+                });
+                setCurrentNews(null);
+                setIsModalOpen(false);
+            } else {
+                throw new Error('No se recibieron datos al guardar la noticia.');
+            }
+        } catch (error) {
+            console.error('Error al guardar la noticia:', error.message);
+            setMessage(`Error al guardar la noticia: ${error.message}`);
+        }
     };
+
 
     const handleDelete = async (newsId) => {
         const { error } = await supabase
@@ -78,32 +157,101 @@ function AdminPage() {
     };
 
     if (isLoading) {
-        return <p>Cargando...</p>;
+        return <p className="text-center">Cargando...</p>;
     }
 
     if (!user) {
-        return null;
+        return <p className="text-center">Acceso denegado. Redirigiendo a la página de inicio de sesión...</p>;
     }
 
     return (
-        <div className="p-4">
+        <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4">
             <h1 className="text-3xl font-bold mb-4">Panel de Administración</h1>
-            <div className="flex gap-2 mb-4">
-                <button
-                    onClick={() => openModal()}
-                    className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-blue-700 transition duration-200"
-                >
-                    Crear Nueva Noticia
-                </button>
-                <button
-                    onClick={handleLogout}
-                    className="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-red-700 transition duration-200"
-                >
-                    Logout
-                </button>
+            <button
+                onClick={() => router.push('/')}
+                className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-blue-700 transition duration-200 mb-4"
+            >
+                Volver al Inicio
+            </button>
+            <button
+                onClick={handleLogout}
+                className="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-red-700 transition duration-200 mb-4"
+            >
+                Salir
+            </button>
+
+
+            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl mb-4">
+                <h2 className="text-xl font-semibold mb-3">Crear Noticia</h2>
+                <form onSubmit={handleSaveNews} className="flex flex-col gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Título</label>
+                        <input
+                            type="text"
+                            name="title"
+                            value={form.title}
+                            onChange={handleChange}
+                            placeholder="Título"
+                            className="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Imagen</label>
+                        <input
+                            type="file"
+                            name="imageFile"
+                            onChange={handleChange}
+                            className="p-2 border border-gray-300 rounded-lg shadow-sm file:bg-blue-100 file:text-blue-800 file:border file:border-blue-300 file:rounded-md hover:file:bg-blue-200 w-full"
+                        />
+                        {form.imagePreview && (
+                            <div className="mt-4">
+                                <img src={form.imagePreview} alt="Preview" className="w-full h-auto rounded-md" />
+                            </div>
+                        )}
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Contenido</label>
+                        <textarea
+                            name="content"
+                            value={form.content}
+                            onChange={handleChange}
+                            className="h-40 p-2 border border-gray-300 rounded-lg shadow-sm w-full"
+                        />
+                    </div>
+                    <div className="flex gap-2">
+                        <div className="w-1/2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Autor</label>
+                            <input
+                                type="text"
+                                name="author"
+                                value={form.author}
+                                onChange={handleChange}
+                                placeholder="Autor"
+                                className="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                            />
+                        </div>
+                        <div className="w-1/2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Fecha</label>
+                            <input
+                                type="date"
+                                name="createdAt"
+                                value={form.createdAt}
+                                onChange={handleChange}
+                                className="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                            />
+                        </div>
+                    </div>
+                    <button
+                        type="submit"
+                        className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
+                    >
+                        Guardar Noticia
+                    </button>
+                </form>
+                {message && <p className="mt-4 text-center text-green-500">{message}</p>}
             </div>
 
-            <div className="bg-white p-3 rounded-lg shadow-lg">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl">
                 <h2 className="text-xl font-semibold mb-3">Listado de Noticias</h2>
                 {news.length === 0 ? (
                     <p>No hay noticias disponibles.</p>
@@ -117,7 +265,18 @@ function AdminPage() {
                                 </div>
                                 <div className="flex gap-2">
                                     <button
-                                        onClick={() => openModal(newsItem)}
+                                        onClick={() => {
+                                            setForm({
+                                                title: newsItem.title,
+                                                imageFile: null,
+                                                imagePreview: newsItem.image_url,
+                                                content: newsItem.content,
+                                                author: newsItem.author,
+                                                createdAt: newsItem.created_at.split('T')[0]
+                                            });
+                                            setCurrentNews(newsItem);
+                                            setIsModalOpen(true);
+                                        }}
                                         className="bg-yellow-500 text-white py-1 px-3 rounded-lg hover:bg-yellow-600 transition duration-200"
                                     >
                                         Editar
@@ -135,174 +294,12 @@ function AdminPage() {
                 )}
             </div>
 
-            {isModalOpen && (
-                <CreateOrEditNewsModal
-                    onClose={closeModal}
-                    newsItem={currentNews}
-                    onNewsSaved={(newNews) => {
-                        if (currentNews) {
-                            setNews(news.map(n => n.id === newNews.id ? newNews : n));
-                        } else {
-                            setNews([...news, newNews]);
-                        }
-                        closeModal();
-                    }}
-                />
-            )}
-
             {confirmDelete && (
                 <DeleteConfirmationModal
                     onClose={() => setConfirmDelete(null)}
                     onConfirm={() => handleDelete(confirmDelete)}
                 />
             )}
-        </div>
-    );
-}
-
-function CreateOrEditNewsModal({ onClose, newsItem, onNewsSaved }) {
-    const [title, setTitle] = useState(newsItem?.title || '');
-    const [imageFile, setImageFile] = useState(null);
-    const [imagePreview, setImagePreview] = useState(newsItem?.image_url || '');
-    const [content, setContent] = useState(newsItem?.content || '');
-    const [author, setAuthor] = useState(newsItem?.author || '');
-    const [createdAt, setCreatedAt] = useState(newsItem ? new Date(newsItem.created_at).toISOString().split('T')[0] : '');
-    const [message, setMessage] = useState('');
-
-    useEffect(() => {
-        // Prevenir scroll en la página detrás del modal
-        document.body.style.overflow = 'hidden';
-        return () => {
-            // Restaurar scroll cuando se cierre el modal
-            document.body.style.overflow = 'auto';
-        };
-    }, []);
-    const handleSaveNews = async (e) => {
-        e.preventDefault();
-        let imageUrl = imagePreview;
-
-        if (imageFile) {
-            const { data, error: uploadError } = await supabase
-                .storage
-                .from('images')
-                .upload(`public/${imageFile.name}`, imageFile);
-
-            if (uploadError) {
-                console.error('Error al subir la imagen:', uploadError.message);
-                setMessage('Error al subir la imagen');
-                return;
-            }
-
-            imageUrl = data.path;
-        }
-
-        let result;
-        if (newsItem) {
-            result = await supabase
-                .from('news')
-                .update({ title, image_url: imageUrl, content, author, created_at: createdAt })
-                .eq('id', newsItem.id);
-        } else {
-            result = await supabase
-                .from('news')
-                .insert([{ title, image_url: imageUrl, content, author, created_at: createdAt }]);
-        }
-
-        const { error, data } = result;
-
-        if (error) {
-            console.error('Error al guardar la noticia:', error.message);
-            setMessage('Error al guardar la noticia');
-        } else if (data && data.length > 0) {
-            setMessage('Noticia guardada exitosamente');
-            onNewsSaved(data[0]);
-        } else {
-            console.error('Error: no se pudo obtener la noticia guardada.');
-            setMessage('Error: no se pudo obtener la noticia guardada.');
-        }
-    };
-
-
-    useEffect(() => {
-        if (imageFile) {
-            const reader = new FileReader();
-            reader.onloadend = () => setImagePreview(reader.result);
-            reader.readAsDataURL(imageFile);
-        }
-    }, [imageFile]);
-
-    return (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-xl h-[90vh] overflow-y-auto">
-                <h1 className="text-2xl font-semibold text-center mb-4">{newsItem ? 'Editar Noticia' : 'Crear Noticia'}</h1>
-                <form onSubmit={handleSaveNews} className="flex flex-col gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Título</label>
-                        <input
-                            type="text"
-                            placeholder="Título"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            className="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Imagen</label>
-                        <input
-                            type="file"
-                            onChange={(e) => setImageFile(e.target.files[0])}
-                            className="p-2 border border-gray-300 rounded-lg shadow-sm file:bg-blue-100 file:text-blue-800 file:border file:border-blue-300 file:rounded-md hover:file:bg-blue-200 w-full"
-                        />
-                        {imagePreview && (
-                            <div className="mt-4">
-                                <img src={imagePreview} alt="Preview" className="w-full h-auto rounded-md" />
-                            </div>
-                        )}
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Contenido</label>
-                        <textarea
-                            value={content}
-                            onChange={(e) => setContent(e.target.value)}
-                            className="h-40 p-2 border border-gray-300 rounded-lg shadow-sm w-full"
-                        />
-                    </div>
-                    <div className="flex gap-2">
-                        <div className="w-1/2">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Autor</label>
-                            <input
-                                type="text"
-                                placeholder="Autor"
-                                value={author}
-                                onChange={(e) => setAuthor(e.target.value)}
-                                className="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-                            />
-                        </div>
-                        <div className="w-1/2">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Fecha</label>
-                            <input
-                                type="date"
-                                value={createdAt}
-                                onChange={(e) => setCreatedAt(e.target.value)}
-                                className="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-                            />
-                        </div>
-                    </div>
-                    <button
-                        type="submit"
-                        className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
-                    >
-                        {newsItem ? 'Guardar Cambios' : 'Crear'}
-                    </button>
-                </form>
-                {message && <p className="mt-4 text-center text-green-500">{message}</p>}
-                <button
-                    onClick={onClose}
-                    className="mt-4 p-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200"
-                >
-                    Cancelar
-                </button>
-            </div>
         </div>
     );
 }

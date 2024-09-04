@@ -23,14 +23,14 @@ export default function Login() {
         });
 
         if (error) {
-            console.error('Error signing in:', error);
+            console.error('Error signing in:', error.message);
         } else {
             router.push('/admin');
         }
     };
 
     const handleClose = () => {
-        router.push('/'); // Cambia la ruta a la que quieras redirigir al cerrar el modal
+        router.push('/'); // Redirige a la página de inicio
     };
 
     if (!isClient) {
@@ -49,7 +49,7 @@ export default function Login() {
                     &#x2715; {/* Símbolo de cerrar (X) */}
                 </button>
 
-                <h1 className="text-2xl font-semibold text-center mb-6">Login prueba</h1>
+                <h1 className="text-2xl font-semibold text-center mb-6">Login</h1>
                 <form onSubmit={handleLogin} className="space-y-6">
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium text-gray-700">
