@@ -4,16 +4,21 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import Footer from './components/Footer/Footer';
+import ModalComoUnirse from './components/ModalComoUnirse/ModalComoUnirse';
 import LastLiveStream from './components/NewsCards/LastLiveStream/LastLiveStream';
 import NewsCards from './components/NewsCards/NewsCards';
 import './globals.css';
 
 export default function RootLayout({ children }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [showSections, setShowSections] = useState(false);
   const channelId = 'UC4eDUzl7Ik9TlkltsqCXvDA'; // Reemplaza con el ID del canal que quieras monitorear
-  const apiKey = 'AIzaSyDZpUaV17D0sKlrJdsRuXywswm0gbOrWRM'; // Reemplaza con tu API Key
+  const apiKey = 'AIzaSyDZpUaV17D0sKlrJdsRuXywswm0gbOrWRM'; //
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,6 +34,7 @@ export default function RootLayout({ children }) {
   }, []);
 
   const isAdminPage = pathname.startsWith('/admin');
+  const isContactPage = pathname.startsWith('/contacto');
 
   return (
     <html lang="en">
@@ -39,7 +45,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="font-dosis">
-        {isAdminPage ? (
+        {isAdminPage || isContactPage ? (
           <main>{children}</main>
         ) : (
           <>
@@ -54,15 +60,23 @@ export default function RootLayout({ children }) {
               />
               <nav className={`fixed top-0 left-0 w-full p-6 z-10 transition-all duration-300 ${scrolled ? 'bg-white shadow-md text-black' : 'bg-transparent text-white'}`}>
                 <div className="flex justify-between items-center">
+
                   <div className="text-2xl font-dosis font-bold">
                     <Image src="/logo10.jpg" alt="Logo" width={100} height={100} className="rounded-xl" />
                   </div>
                   <ul className="flex space-x-6 font-dosis text-2xl items-center">
                     <li><Link href="/" className="hover:text-red-500 transition-colors">Inicio</Link></li>
+                    <li>
+                      <button onClick={openModal} className="hover:text-red-500 transition-colors">
+                        Cómo Unirse
+                      </button>
+                    </li>
                     <li><Link href="/team" className="hover:text-red-500 transition-colors">Nuestro Equipo</Link></li>
                     <li><Link href="/about" className="hover:text-red-500 transition-colors">Noticias Primer Equipo</Link></li>
                     <li><Link href="/services" className="hover:text-red-500 transition-colors">Opinión y Análisis</Link></li>
-                    <li><Link href="/contact" className="hover:text-red-500 transition-colors">Barça Atlético</Link></li>
+                    <li><Link href="/" className="hover:text-red-500 transition-colors">Barça Atlético</Link></li>
+                    <li><Link href="/contacto" className="hover:text-red-500 transition-colors">Contacto</Link></li>
+
                     <li className="relative">
                       <button
                         onClick={() => setShowSections(!showSections)}
@@ -92,10 +106,16 @@ export default function RootLayout({ children }) {
             <main>
               <LastLiveStream channelId={channelId} apiKey={apiKey} />
               <NewsCards />
+              <Footer />
               {children}
             </main>
           </>
         )}
+        <ModalComoUnirse
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          videoUrl="./comounirse.mp4" // Reemplaza "video-id" por el ID real de YouTube
+        />
       </body>
     </html>
   );

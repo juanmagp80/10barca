@@ -35,9 +35,13 @@ html, body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  height: 100%;
   width: 100%;
-  font-family: sans-serif;
+  height: 100%;
+}
+main {
+  width: 100%;
+  display: flex;
+  justify-content: center; /* Para centrar el formulario horizontalmente si es necesario */
 }
 
 header {
@@ -161,4 +165,8 @@ nav.text-white {
 }
 .quill-editor {
   height: 300px;
+}
+.contact-form-container {
+  width: 100%; /* O cualquier valor específico si necesitas */
+  max-width: 1200px; /* Ajusta el valor según tu diseño */
 }
