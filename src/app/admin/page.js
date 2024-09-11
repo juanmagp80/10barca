@@ -53,7 +53,6 @@ function AdminPage() {
         fetchNews();
     }, [router]);
 
-
     const handleLogout = async () => {
         const { error } = await supabase.auth.signOut();
         if (error) {
@@ -61,7 +60,6 @@ function AdminPage() {
         }
         router.push('/'); // Redirige a la página de inicio
     };
-
 
     const handleChange = (e) => {
         const { name, value, type, files } = e.target;
@@ -78,50 +76,42 @@ function AdminPage() {
 
     const handleSaveNews = async (e) => {
         e.preventDefault();
-        const { title, imageFile, imagePreview, content, author, createdAt } = form;
-        let imageUrl = imagePreview;
+        const { title, imageFile, content, author, createdAt } = form;
+        let imageUrl = '';
 
         if (imageFile) {
-            try {
-                const { data, error: uploadError } = await supabase
-                    .storage
-                    .from('images')
-                    .upload(`public/${imageFile.name}`, imageFile);
-
-                if (uploadError) throw uploadError;
-
-                imageUrl = data.path; // Obtén la URL de la imagen
-            } catch (error) {
-                console.error('Error al subir la imagen:', error.message);
+            imageUrl = await uploadImage(imageFile);
+            if (!imageUrl) {
                 setMessage('Error al subir la imagen');
                 return;
             }
         }
 
-        let result;
         try {
+            let result;
             if (currentNews) {
                 // Actualizar noticia existente
                 result = await supabase
                     .from('news')
                     .update({ title, image_url: imageUrl, content, author, created_at: createdAt })
-                    .eq('id', currentNews.id);
+                    .eq('id', currentNews.id)
+                    .select(); // Fuerza a retornar los datos actualizados
             } else {
                 // Insertar nueva noticia
                 result = await supabase
                     .from('news')
-                    .insert([{ title, image_url: imageUrl, content, author, created_at: createdAt }]);
+                    .insert([{ title, image_url: imageUrl, content, author, created_at: createdAt }])
+                    .select(); // Fuerza a retornar los datos insertados
             }
-
-            // Log de la respuesta para depuración
-            console.log('Resultado de la operación de Supabase:', result);
 
             if (result.error) throw result.error;
 
-            // Asegúrate de que la respuesta contiene datos
             if (result.data && result.data.length > 0) {
                 setMessage('Noticia guardada exitosamente');
-                setNews(currentNews ? news.map(n => n.id === result.data[0].id ? result.data[0] : n) : [...news, result.data[0]]);
+                setNews(currentNews
+                    ? news.map(n => n.id === result.data[0].id ? result.data[0] : n)
+                    : [...news, result.data[0]]
+                );
                 setForm({
                     title: '',
                     imageFile: null,
@@ -137,7 +127,39 @@ function AdminPage() {
             }
         } catch (error) {
             console.error('Error al guardar la noticia:', error.message);
-            setMessage(`Error al guardar la noticia: ${error.message}`);
+            setMessage('Error al guardar la noticia: ' + error.message);
+        }
+    };
+
+
+    const uploadImage = async (file) => {
+        try {
+            const { data, error } = await supabase
+                .storage
+                .from('images')
+                .upload(`public/${file.name}`, file);
+
+            if (error) {
+                console.error('Error al subir la imagen:', error.message);
+                return null;
+            }
+
+            // Obtener la URL pública
+            const { publicURL, error: urlError } = supabase
+                .storage
+                .from('images')
+                .getPublicUrl(`public/${file.name}`);
+
+            if (urlError) {
+                console.error('Error al obtener la URL pública:', urlError.message);
+                return null;
+            }
+
+            console.log('URL pública obtenida:', publicURL); // Agrega este log para depuración
+            return publicURL;
+        } catch (error) {
+            console.error('Error inesperado al subir la imagen:', error.message);
+            return null;
         }
     };
 
@@ -179,7 +201,6 @@ function AdminPage() {
             >
                 Salir
             </button>
-
 
             <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl mb-4">
                 <h2 className="text-xl font-semibold mb-3">Crear Noticia</h2>
@@ -261,7 +282,17 @@ function AdminPage() {
                             <li key={newsItem.id} className="flex justify-between items-center">
                                 <div>
                                     <h3 className="text-lg font-bold">{newsItem.title}</h3>
-                                    <p>{newsItem.author} - {new Date(newsItem.created_at).toLocaleDateString()}</p>
+                                    <p>{newsItem.author}
+                                        {new Date(newsItem.created_at).toLocaleDateString()}</p>
+                                    {newsItem.image_url && (
+                                        <img
+                                            src={newsItem.image_url.startsWith('data:image')
+                                                ? newsItem.image_url
+                                                : `https://voppsjtjccpkgyyfgskb.supabase.co/storage/v1/object/public/images/public/${newsItem.image_url}`}
+                                            alt={newsItem.title}
+                                            className="w-32 h-32 object-cover rounded-md mt-2"
+                                        />
+                                    )}
                                 </div>
                                 <div className="flex gap-2">
                                     <button
@@ -269,7 +300,7 @@ function AdminPage() {
                                             setForm({
                                                 title: newsItem.title,
                                                 imageFile: null,
-                                                imagePreview: newsItem.image_url,
+                                                imagePreview: newsItem.image_url.startsWith('data:image') ? newsItem.image_url : `https://voppsjtjccpkgyyfgskb.supabase.co/storage/v1/object/public/images/public/${newsItem.image_url}`,
                                                 content: newsItem.content,
                                                 author: newsItem.author,
                                                 createdAt: newsItem.created_at.split('T')[0]
