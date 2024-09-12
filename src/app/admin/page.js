@@ -401,7 +401,7 @@ function AdminPage() {
                                     className="p-2 border border-gray-300 rounded-lg w-full"
                                 >
                                     <option value="">Selecciona una categoría</option>
-                                    <option value="PrimerEquipo">Primer Equipo</option>
+                                    <option value="Primer Equipo">Primer Equipo</option>
                                     <option value="Opinion">Opinión y Analisis</option>
                                     <option value="BarçaAtlético">Barça Atlético</option>
                                     <option value="Baloncesto">Baloncesto</option>

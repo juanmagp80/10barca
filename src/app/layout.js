@@ -36,6 +36,7 @@ export default function RootLayout({ children }) {
   const isAdminPage = pathname.startsWith('/admin');
   const isContactPage = pathname.startsWith('/contacto');
   const isNewsIdPage = pathname.startsWith('/news/') && pathname.split('/').length === 3;
+  const isPrimerEquipoPage = pathname.startsWith('/primerequipo');
 
   return (
     <html lang="en">
@@ -46,7 +47,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="font-dosis">
-        {isAdminPage || isContactPage || isNewsIdPage ? (
+        {isAdminPage || isContactPage || isNewsIdPage || isPrimerEquipoPage ? (
           <main>{children}</main>
         ) : (
           <>

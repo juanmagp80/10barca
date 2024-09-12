@@ -1,7 +1,7 @@
 "use client"
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { supabase } from '../../../lib/supabaseClient';
+import { supabase } from '../../../../lib/supabaseClient';
 // Ajusta la ruta si es necesario
 
 const NewsDetail = () => {
@@ -34,14 +34,14 @@ const NewsDetail = () => {
 
     return (
         <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl">
-                <h1 className="text-3xl font-bold mb-4">{article.title}</h1>
+            <div className="bg-white p-6 rounded-lg shadow-2xl w-full max-w-4xl">
+                <h1 className="text-3xl text-center font-bold mb-4">{article.title}</h1>
                 {article.image_url && (
                     <img src={article.image_url} alt={article.title} className="w-full h-auto rounded-md mb-4" />
                 )}
-                <p className="text-gray-700 mb-4">{article.content}</p>
-                <p className="text-gray-500">Autor: {article.author}</p>
-                <p className="text-gray-500">Fecha: {new Date(article.created_at).toLocaleDateString()}</p>
+                <p className="text-black mb-4">{article.content}</p>
+                <p className="text-gray-800 text-center font-bold">Autor: {article.author}</p>
+                <p className="text-gray-800 text-center font-bold">Fecha: {new Date(article.created_at).toLocaleDateString()}</p>
             </div>
         </div>
     );
