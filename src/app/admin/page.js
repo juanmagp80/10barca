@@ -1,5 +1,4 @@
-'use client';
-
+"use client"
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient'; // Ajusta la ruta si es necesario
@@ -17,7 +16,8 @@ function AdminPage() {
         imagePreview: '',
         content: '',
         author: '',
-        createdAt: ''
+        createdAt: '',
+        category: '' // Añadir categoría al formulario
     });
     const [message, setMessage] = useState('');
     const router = useRouter();
@@ -63,44 +63,44 @@ function AdminPage() {
 
     const handleChange = (e) => {
         const { name, value, type, files } = e.target;
-        setForm({
-            ...form,
+        setForm((prevForm) => ({
+            ...prevForm,
             [name]: type === 'file' ? files[0] : value
-        });
+        }));
         if (name === 'imageFile' && files[0]) {
             const reader = new FileReader();
-            reader.onloadend = () => setForm({ ...form, imagePreview: reader.result });
+            reader.onloadend = () => setForm((prevForm) => ({ ...prevForm, imagePreview: reader.result }));
             reader.readAsDataURL(files[0]);
         }
     };
 
     const handleSaveNews = async (e) => {
         e.preventDefault();
-        const { title, imageFile, content, author, createdAt } = form;
-        let imageUrl = '';
-
-        if (imageFile) {
-            imageUrl = await uploadImage(imageFile);
-            if (!imageUrl) {
-                setMessage('Error al subir la imagen');
-                return;
-            }
-        }
-
         try {
+            const { title, imageFile, content, author, createdAt, category } = form;
+            let imageUrl = '';
+
+            if (imageFile) {
+                imageUrl = await uploadImage(imageFile);
+                if (!imageUrl) {
+                    setMessage('Error al subir la imagen');
+                    return;
+                }
+            }
+
             let result;
             if (currentNews) {
                 // Actualizar noticia existente
                 result = await supabase
                     .from('news')
-                    .update({ title, image_url: imageUrl, content, author, created_at: createdAt })
+                    .update({ title, image_url: imageUrl, content, author, created_at: createdAt, category })
                     .eq('id', currentNews.id)
                     .select(); // Fuerza a retornar los datos actualizados
             } else {
                 // Insertar nueva noticia
                 result = await supabase
                     .from('news')
-                    .insert([{ title, image_url: imageUrl, content, author, created_at: createdAt }])
+                    .insert([{ title, image_url: imageUrl, content, author, created_at: createdAt, category }])
                     .select(); // Fuerza a retornar los datos insertados
             }
 
@@ -118,7 +118,8 @@ function AdminPage() {
                     imagePreview: '',
                     content: '',
                     author: '',
-                    createdAt: ''
+                    createdAt: '',
+                    category: '' // Resetear categoría
                 });
                 setCurrentNews(null);
                 setIsModalOpen(false);
@@ -131,50 +132,46 @@ function AdminPage() {
         }
     };
 
-
     const uploadImage = async (file) => {
         try {
-            const { data, error } = await supabase
-                .storage
-                .from('images')
-                .upload(`public/${file.name}`, file);
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', 'ml_default'); // Verifica tu preset en Cloudinary
 
-            if (error) {
-                console.error('Error al subir la imagen:', error.message);
+            const response = await fetch(`https://api.cloudinary.com/v1_1/djieishbb/image/upload`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                console.error('Error al subir la imagen:', data.error.message);
                 return null;
             }
 
-            // Obtener la URL pública
-            const { publicURL, error: urlError } = supabase
-                .storage
-                .from('images')
-                .getPublicUrl(`public/${file.name}`);
-
-            if (urlError) {
-                console.error('Error al obtener la URL pública:', urlError.message);
-                return null;
-            }
-
-            console.log('URL pública obtenida:', publicURL); // Agrega este log para depuración
-            return publicURL;
+            return data.secure_url; // Retorna la URL de la imagen subida
         } catch (error) {
             console.error('Error inesperado al subir la imagen:', error.message);
             return null;
         }
     };
 
-
     const handleDelete = async (newsId) => {
-        const { error } = await supabase
-            .from('news')
-            .delete()
-            .eq('id', newsId);
+        try {
+            const { error } = await supabase
+                .from('news')
+                .delete()
+                .eq('id', newsId);
 
-        if (error) {
-            console.error('Error deleting news:', error.message);
-        } else {
-            setNews(news.filter(news => news.id !== newsId));
-            setConfirmDelete(null);
+            if (error) {
+                console.error('Error deleting news:', error.message);
+            } else {
+                setNews(news.filter(news => news.id !== newsId));
+                setConfirmDelete(null);
+            }
+        } catch (error) {
+            console.error('Error inesperado al eliminar la noticia:', error.message);
         }
     };
 
@@ -248,7 +245,7 @@ function AdminPage() {
                                 value={form.author}
                                 onChange={handleChange}
                                 placeholder="Autor"
-                                className="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                className="p-2 border border-gray-300 rounded-lg shadow-sm w-full"
                             />
                         </div>
                         <div className="w-1/2">
@@ -258,104 +255,203 @@ function AdminPage() {
                                 name="createdAt"
                                 value={form.createdAt}
                                 onChange={handleChange}
-                                className="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                className="p-2 border border-gray-300 rounded-lg shadow-sm w-full"
                             />
                         </div>
                     </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
+                        <select
+                            name="category"
+                            value={form.category}
+                            onChange={handleChange}
+                            className="p-2 border border-gray-300 rounded-lg shadow-sm w-full"
+                        >
+                            <option value="">Selecciona una categoría</option>
+                            <option value="PrimerEquipo">Primer Equipo</option>
+                            <option value="Opinion">Opinión y Analisis</option>
+                            <option value="BarçaAtlético">Barça Atlético</option>
+                            <option value="Baloncesto">Baloncesto</option>
+                            <option value="FutbolSala">Fútbol Sala</option>
+                            <option value="Balonmano">Balonmano</option>
+                            {/* Añade más opciones según sea necesario */}
+                        </select>
+                    </div>
                     <button
                         type="submit"
-                        className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
+                        className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-blue-700 transition duration-200 mt-4"
                     >
-                        Guardar Noticia
+                        Guardar
                     </button>
                 </form>
-                {message && <p className="mt-4 text-center text-green-500">{message}</p>}
+                {message && <p className="text-green-600 mt-4">{message}</p>}
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl">
-                <h2 className="text-xl font-semibold mb-3">Listado de Noticias</h2>
-                {news.length === 0 ? (
-                    <p>No hay noticias disponibles.</p>
-                ) : (
-                    <ul className="space-y-3">
-                        {news.map((newsItem) => (
-                            <li key={newsItem.id} className="flex justify-between items-center">
-                                <div>
-                                    <h3 className="text-lg font-bold">{newsItem.title}</h3>
-                                    <p>{newsItem.author}
-                                        {new Date(newsItem.created_at).toLocaleDateString()}</p>
-                                    {newsItem.image_url && (
-                                        <img
-                                            src={newsItem.image_url.startsWith('data:image')
-                                                ? newsItem.image_url
-                                                : `https://voppsjtjccpkgyyfgskb.supabase.co/storage/v1/object/public/images/public/${newsItem.image_url}`}
-                                            alt={newsItem.title}
-                                            className="w-32 h-32 object-cover rounded-md mt-2"
-                                        />
-                                    )}
-                                </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => {
-                                            setForm({
-                                                title: newsItem.title,
-                                                imageFile: null,
-                                                imagePreview: newsItem.image_url.startsWith('data:image') ? newsItem.image_url : `https://voppsjtjccpkgyyfgskb.supabase.co/storage/v1/object/public/images/public/${newsItem.image_url}`,
-                                                content: newsItem.content,
-                                                author: newsItem.author,
-                                                createdAt: newsItem.created_at.split('T')[0]
-                                            });
-                                            setCurrentNews(newsItem);
-                                            setIsModalOpen(true);
-                                        }}
-                                        className="bg-yellow-500 text-white py-1 px-3 rounded-lg hover:bg-yellow-600 transition duration-200"
-                                    >
-                                        Editar
-                                    </button>
-                                    <button
-                                        onClick={() => setConfirmDelete(newsItem.id)}
-                                        className="bg-red-600 text-white py-1 px-3 rounded-lg hover:bg-red-700 transition duration-200"
-                                    >
-                                        Eliminar
-                                    </button>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                )}
+                <h2 className="text-xl font-semibold mb-3">Noticias</h2>
+                {news.length === 0 && <p className="text-center">No hay noticias disponibles.</p>}
+                {news.map((newsItem) => (
+                    <div key={newsItem.id} className="flex justify-between items-center mb-4 p-4 bg-gray-50 rounded-lg shadow-sm">
+                        <div>
+                            <h3 className="text-lg font-semibold">{newsItem.title}</h3>
+                            <p className="text-sm text-gray-600">{newsItem.content}</p>
+                            {newsItem.image_url && (
+                                <img src={newsItem.image_url} alt="Imagen de noticia" className="mt-2 w-32 h-32 object-cover rounded-md" />
+                            )}
+                            <p className="text-sm text-gray-600 mt-2"><strong>Categoría:</strong> {newsItem.category}</p>
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => {
+                                    setForm({
+                                        title: newsItem.title,
+                                        imageFile: null,
+                                        imagePreview: newsItem.image_url,
+                                        content: newsItem.content,
+                                        author: newsItem.author,
+                                        createdAt: newsItem.created_at.split('T')[0],
+                                        category: newsItem.category // Añadir categoría al formulario
+                                    });
+                                    setCurrentNews(newsItem);
+                                    setIsModalOpen(true);
+                                }}
+                                className="bg-yellow-500 text-white font-semibold py-1 px-3 rounded-lg shadow hover:bg-yellow-600 transition duration-200"
+                            >
+                                Editar
+                            </button>
+                            <button
+                                onClick={() => setConfirmDelete(newsItem.id)}
+                                className="bg-red-600 text-white font-semibold py-1 px-3 rounded-lg shadow hover:bg-red-700 transition duration-200"
+                            >
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                ))}
             </div>
+
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
+                        <h2 className="text-2xl font-bold mb-4">{currentNews ? 'Editar Noticia' : 'Nueva Noticia'}</h2>
+                        <form onSubmit={handleSaveNews}>
+                            <div className="mb-4">
+                                <label className="block text-sm font-semibold mb-2" htmlFor="title">Título</label>
+                                <input
+                                    type="text"
+                                    id="title"
+                                    name="title"
+                                    value={form.title}
+                                    onChange={handleChange}
+                                    className="p-2 border border-gray-300 rounded-lg w-full"
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-sm font-semibold mb-2" htmlFor="imageFile">Imagen</label>
+                                <input
+                                    type="file"
+                                    id="imageFile"
+                                    name="imageFile"
+                                    onChange={handleChange}
+                                    className="p-2 border border-gray-300 rounded-lg w-full"
+                                />
+                                {form.imagePreview && (
+                                    <img src={form.imagePreview} alt="Vista previa" className="w-32 h-32 mt-2 object-cover" />
+                                )}
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-sm font-semibold mb-2" htmlFor="content">Contenido</label>
+                                <textarea
+                                    id="content"
+                                    name="content"
+                                    value={form.content}
+                                    onChange={handleChange}
+                                    className="p-2 border border-gray-300 rounded-lg w-full"
+                                ></textarea>
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-sm font-semibold mb-2" htmlFor="author">Autor</label>
+                                <input
+                                    type="text"
+                                    id="author"
+                                    name="author"
+                                    value={form.author}
+                                    onChange={handleChange}
+                                    className="p-2 border border-gray-300 rounded-lg w-full"
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-sm font-semibold mb-2" htmlFor="createdAt">Fecha</label>
+                                <input
+                                    type="date"
+                                    id="createdAt"
+                                    name="createdAt"
+                                    value={form.createdAt}
+                                    onChange={handleChange}
+                                    className="p-2 border border-gray-300 rounded-lg w-full"
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-sm font-semibold mb-2" htmlFor="category">Categoría</label>
+                                <select
+                                    id="category"
+                                    name="category"
+                                    value={form.category}
+                                    onChange={handleChange}
+                                    className="p-2 border border-gray-300 rounded-lg w-full"
+                                >
+                                    <option value="">Selecciona una categoría</option>
+                                    <option value="PrimerEquipo">Primer Equipo</option>
+                                    <option value="Opinion">Opinión y Analisis</option>
+                                    <option value="BarçaAtlético">Barça Atlético</option>
+                                    <option value="Baloncesto">Baloncesto</option>
+                                    <option value="FutbolSala">Fútbol Sala</option>
+                                    <option value="Balonmano">Balonmano</option>
+                                    {/* Añade más opciones según sea necesario */}
+                                </select>
+                            </div>
+                            <div className="flex justify-end">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-gray-700 transition duration-200 mr-2"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-blue-700 transition duration-200"
+                                >
+                                    Guardar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             {confirmDelete && (
-                <DeleteConfirmationModal
-                    onClose={() => setConfirmDelete(null)}
-                    onConfirm={() => handleDelete(confirmDelete)}
-                />
-            )}
-        </div>
-    );
-}
-
-function DeleteConfirmationModal({ onClose, onConfirm }) {
-    return (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-2">
-            <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-                <h2 className="text-xl font-bold mb-4">Confirmar Eliminación</h2>
-                <p>¿Estás seguro de que deseas eliminar esta noticia?</p>
-                <div className="mt-4 flex justify-end gap-2">
-                    <button
-                        onClick={onClose}
-                        className="p-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200"
-                    >
-                        Cancelar
-                    </button>
-                    <button
-                        onClick={onConfirm}
-                        className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-200"
-                    >
-                        Eliminar
-                    </button>
+                <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
+                        <h3 className="text-lg font-semibold mb-4">Confirmar Eliminación</h3>
+                        <p className="mb-4">¿Estás seguro de que quieres eliminar esta noticia?</p>
+                        <div className="flex justify-end gap-2">
+                            <button
+                                onClick={() => setConfirmDelete(null)}
+                                className="bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-gray-700 transition duration-200"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={() => handleDelete(confirmDelete)}
+                                className="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-red-700 transition duration-200"
+                            >
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }
