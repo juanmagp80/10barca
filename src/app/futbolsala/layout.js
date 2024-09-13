@@ -28,7 +28,7 @@ export default function PrimerEquipoLayout({ children }) {
         <div className="font-dosis bg-fixed bg-cover bg-center" style={{ backgroundImage: "url('./portada10.jpg')" }}>
             <header className="relative w-full">
                 <nav className={`fixed top-0 left-0 w-full p-4 z-10 transition-all duration-300 ${scrolled ? 'bg-white shadow-md text-black' : 'bg-transparent text-white'}`}>
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center mr-16">
                         <div className="text-2xl font-dosis font-bold">
                             <Image src="/logo10.jpg" alt="Logo" width={100} height={100} className="rounded-xl" />
                         </div>
@@ -36,8 +36,6 @@ export default function PrimerEquipoLayout({ children }) {
                             <li><Link href="/" className="hover:text-red-500 transition-colors">Inicio</Link></li>
                             <li><Link href="/team" className="hover:text-red-500 transition-colors">Nuestro Equipo</Link></li>
                             <li><Link href="/about" className="hover:text-red-500 transition-colors">Noticias Primer Equipo</Link></li>
-                            <li><Link href="/services" className="hover:text-red-500 transition-colors">Opinión y Análisis</Link></li>
-                            <li><Link href="/" className="hover:text-red-500 transition-colors">Barça Atlético</Link></li>
                             <li><Link href="/contacto" className="hover:text-red-500 transition-colors">Contacto</Link></li>
                             <li className="relative">
                                 <button
@@ -53,9 +51,9 @@ export default function PrimerEquipoLayout({ children }) {
                                 <div className={`absolute left-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg transition-all duration-300 ease-in-out overflow-hidden ${showSections ? 'max-h-70' : 'max-h-0'}`}>
                                     <ul className="py-2">
                                         <li className="px-4 py-2 hover:bg-gray-100"><Link href="/baloncesto">Baloncesto</Link></li>
-                                        <li className="px-4 py-2 hover:bg-gray-100"><Link href="/futsal">Fútbol Sala</Link></li>
+                                        <li className="px-4 py-2 hover:bg-gray-100"><Link href="/futbolsala">Fútbol Sala</Link></li>
                                         <li className="px-4 py-2 hover:bg-gray-100"><Link href="/balonmano">Balonmano</Link></li>
-                                        <li className="px-4 py-2 hover:bg-gray-100"><Link href="/Opinión">Opinión y Analisis</Link></li>
+                                        <li className="px-4 py-2 hover:bg-gray-100"><Link href="/opinion">Opinión y Analisis</Link></li>
                                         <li className="px-4 py-2 hover:bg-gray-100"><Link href="/barcaatletico">Barça Atlético</Link></li>
                                     </ul>
                                 </div>

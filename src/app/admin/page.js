@@ -269,10 +269,10 @@ function AdminPage() {
                         >
                             <option value="">Selecciona una categoría</option>
                             <option value="PrimerEquipo">Primer Equipo</option>
-                            <option value="Opinion">Opinión y Analisis</option>
+                            <option value="Opinión">Opinión y Analisis</option>
                             <option value="BarçaAtlético">Barça Atlético</option>
                             <option value="Baloncesto">Baloncesto</option>
-                            <option value="FutbolSala">Fútbol Sala</option>
+                            <option value="Fútbol Sala">Fútbol Sala</option>
                             <option value="Balonmano">Balonmano</option>
                             {/* Añade más opciones según sea necesario */}
                         </select>
