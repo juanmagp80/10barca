@@ -49,21 +49,9 @@ export default function RootLayout({ children }) {
                             </div>
                             {/* Menu */}
                             <ul className="flex space-x-6 font-dosis text-2xl items-center">
-                                <li>
-                                    <Link href="/" className="hover:text-red-500 transition-colors">Inicio</Link>
-                                </li>
-                                <li>
-                                    <Link href="/team" className="hover:text-red-500 transition-colors">Nuestro Equipo</Link>
-                                </li>
-                                <li>
-                                    <Link href="/about" className="hover:text-red-500 transition-colors">Noticias Primer Equipo</Link>
-                                </li>
-                                <li>
-                                    <Link href="/services" className="hover:text-red-500 transition-colors">Opinión y Análisis</Link>
-                                </li>
-                                <li>
-                                    <Link href="/contact" className="hover:text-red-500 transition-colors">Barça Atlético</Link>
-                                </li>
+                                <li><Link href="/team" className="hover:text-red-500 transition-colors">Nuestro Equipo</Link></li>
+                                <li><Link href="/about" className="hover:text-red-500 transition-colors">Noticias Primer Equipo</Link></li>
+                                <li><Link href="/contacto" className="hover:text-red-500 transition-colors">Contacto</Link></li>
                                 <li className="relative">
                                     <button
                                         onClick={() => setShowSections(!showSections)}
@@ -72,6 +60,11 @@ export default function RootLayout({ children }) {
                                         Secciones
                                         <span className={`ml-2 transform transition-transform ${showSections ? 'rotate-180' : ''}`}>
                                             ▼
+                                            <li className="px-4 py-2 hover:bg-gray-100"><Link href="/basketball">Baloncesto</Link></li>
+                                            <li className="px-4 py-2 hover:bg-gray-100"><Link href="/futsal">Fútbol Sala</Link></li>
+                                            <li className="px-4 py-2 hover:bg-gray-100"><Link href="/handball">Balonmano</Link></li>
+                                            <li className="px-4 py-2 hover:bg-gray-100"><Link href="/handball">Opinión y Analisis</Link></li>
+                                            <li className="px-4 py-2 hover:bg-gray-100"><Link href="/handball">Barça Atlético</Link></li>
                                         </span>
                                     </button>
                                     {/* Menú desplegable */}

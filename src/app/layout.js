@@ -37,6 +37,7 @@ export default function RootLayout({ children }) {
   const isContactPage = pathname.startsWith('/contacto');
   const isNewsIdPage = pathname.startsWith('/news/') && pathname.split('/').length === 3;
   const isPrimerEquipoPage = pathname.startsWith('/primerequipo');
+  const isTeamPage = pathname.startsWith('/team');
 
   return (
     <html lang="en">
@@ -47,7 +48,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="font-dosis">
-        {isAdminPage || isContactPage || isNewsIdPage || isPrimerEquipoPage ? (
+        {isAdminPage || isContactPage || isNewsIdPage || isPrimerEquipoPage || isTeamPage ? (
           <main>{children}</main>
         ) : (
           <>
@@ -61,7 +62,7 @@ export default function RootLayout({ children }) {
                 className="absolute inset-0 z-0"
               />
               <nav className={`fixed top-0 left-0 w-full p-6 z-10 transition-all duration-300 ${scrolled ? 'bg-white shadow-md text-black' : 'bg-transparent text-white'}`}>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center mr-14">
 
                   <div className="text-2xl font-dosis font-bold">
                     <Image src="/logo10.jpg" alt="Logo" width={100} height={100} className="rounded-xl" />
@@ -75,8 +76,6 @@ export default function RootLayout({ children }) {
                     </li>
                     <li><Link href="/team" className="hover:text-red-500 transition-colors">Nuestro Equipo</Link></li>
                     <li><Link href="/about" className="hover:text-red-500 transition-colors">Noticias Primer Equipo</Link></li>
-                    <li><Link href="/services" className="hover:text-red-500 transition-colors">Opinión y Análisis</Link></li>
-                    <li><Link href="/" className="hover:text-red-500 transition-colors">Barça Atlético</Link></li>
                     <li><Link href="/contacto" className="hover:text-red-500 transition-colors">Contacto</Link></li>
 
                     <li className="relative">
@@ -89,11 +88,14 @@ export default function RootLayout({ children }) {
                           ▼
                         </span>
                       </button>
-                      <div className={`absolute top-full left-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg transition-max-height duration-300 ease-in-out overflow-hidden ${showSections ? 'max-h-40' : 'max-h-0'}`}>
+                      <div className={`absolute top-full left-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg transition-max-height duration-300 ease-in-out overflow-hidden ${showSections ? 'max-h-70' : 'max-h-0'}`}>
                         <ul className="py-2">
                           <li className="px-4 py-2 hover:bg-gray-100"><Link href="/basketball">Baloncesto</Link></li>
                           <li className="px-4 py-2 hover:bg-gray-100"><Link href="/futsal">Fútbol Sala</Link></li>
                           <li className="px-4 py-2 hover:bg-gray-100"><Link href="/handball">Balonmano</Link></li>
+                          <li className="px-4 py-2 hover:bg-gray-100"><Link href="/handball">Opinión y Analisis</Link></li>
+                          <li className="px-4 py-2 hover:bg-gray-100"><Link href="/handball">Barça Atlético</Link></li>
+
                         </ul>
                       </div>
                     </li>
