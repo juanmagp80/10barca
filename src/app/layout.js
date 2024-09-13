@@ -16,7 +16,7 @@ export default function RootLayout({ children }) {
   const [scrolled, setScrolled] = useState(false);
   const [showSections, setShowSections] = useState(false);
   const channelId = 'UC4eDUzl7Ik9TlkltsqCXvDA'; // Reemplaza con el ID del canal que quieras monitorear
-  const apiKey = 'AIzaSyDZpUaV17D0sKlrJdsRuXywswm0gbOrWRM'; //
+  const apiKey = 'AIzaSyCaUsEhUu4krkDzVx2--FFfB2EVDvPYcjQ'; //
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
