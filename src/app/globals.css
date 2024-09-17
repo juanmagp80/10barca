@@ -162,3 +162,17 @@ nav.text-white {
 .quill-editor {
   height: 300px;
 }
+
+.google-form-container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.google-form-container iframe {
+  width: 100%;
+  height: 90%;
+  border: none;
+}

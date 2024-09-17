@@ -43,6 +43,7 @@ export default function RootLayout({ children }) {
   const isFutbolSalaPage = pathname.startsWith('/futbolsala');
   const isOpinionPage = pathname.startsWith('/opinion');
   const isBarcaAtleticoPage = pathname.startsWith('/barcaatletico');
+  const isSurveyPage = pathname.startsWith('/encuestas');
 
   return (
     <html lang="en">
@@ -53,7 +54,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="font-dosis">
-        {isAdminPage || isContactPage || isNewsIdPage || isPrimerEquipoPage || isTeamPage || isBaloncestoPage || isBalonmanoPage || isFutbolSalaPage || isOpinionPage || isBarcaAtleticoPage ? (
+        {isAdminPage || isContactPage || isNewsIdPage || isPrimerEquipoPage || isTeamPage || isBaloncestoPage || isBalonmanoPage || isFutbolSalaPage || isOpinionPage || isBarcaAtleticoPage || isSurveyPage ? (
           <main>{children}</main>
         ) : (
           <>
