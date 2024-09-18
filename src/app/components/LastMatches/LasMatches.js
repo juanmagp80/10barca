@@ -39,13 +39,15 @@ const LastMatches = () => {
     };
     // Configuración para el carrusel
     const settings = {
-        dots: true,
-        infinite: true,
-        speed: 500,
-        slidesToShow: 3,
-        slidesToScroll: 1,
-        autoplay: true,
-        autoplaySpeed: 3000,
+        dots: false,                     // Sin puntos de navegación
+        infinite: true,                  // Carrusel infinito
+        speed: 7000,                     // Velocidad de deslizamiento más alta
+        slidesToShow: 3,                 // Mostrar más de un partido a la vez
+        slidesToScroll: 1,               // Desplazar de a uno
+        autoplay: true,                  // Auto deslizamiento
+        autoplaySpeed: 0,                // Sin pausa entre movimientos
+        cssEase: 'linear',               // Movimiento continuo
+        pauseOnHover: false,             // No pausar al pasar el mouse
     };
 
     // Tomamos el round de uno de los partidos, asumiendo que todos pertenecen a la misma jornada
@@ -53,7 +55,7 @@ const LastMatches = () => {
 
     return (
         <div className="container mx-auto p-4">
-            <h2 className="text-xl font-bold mb-4">{round}</h2> {/* Mostrar el número de la jornada */}
+            <h2 className="text-xl font-bold mb-4">{round}</h2>
             <Slider {...settings}>
                 {matches.map((match) => (
                     <div key={match.fixture.id} className="p-4">
