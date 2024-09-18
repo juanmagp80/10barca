@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Footer from './components/Footer/Footer';
+import LastMatches from './components/LastMatches/LasMatches';
 import ModalComoUnirse from './components/ModalComoUnirse/ModalComoUnirse';
 import LastLiveStream from './components/NewsCards/LastLiveStream/LastLiveStream';
 import NewsCards from './components/NewsCards/NewsCards';
@@ -19,6 +20,8 @@ export default function RootLayout({ children }) {
   const apiKey = 'AIzaSyCaUsEhUu4krkDzVx2--FFfB2EVDvPYcjQ'; //
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -114,6 +117,7 @@ export default function RootLayout({ children }) {
               </div>
             </header>
             <main>
+              <LastMatches />
               <LastLiveStream channelId={channelId} apiKey={apiKey} />
               <NewsCards />
               <Footer />

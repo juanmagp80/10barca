@@ -4,6 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* globals.css */
+@import "~slick-carousel/slick/slick.css";
+@import "~slick-carousel/slick/slick-theme.css";
+
+
 @import url('https://fonts.googleapis.com/css2?family=Dosis:wght@200..800&display=swap');
 :root {
   --foreground-rgb: 0, 0, 0;
