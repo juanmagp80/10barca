@@ -25,6 +25,10 @@ const NewsCards = () => {
     }, []);
 
     const truncateText = (text, length) => {
+        if (typeof text !== 'string') {
+            return '';  // O cualquier valor por defecto que prefieras en caso de que no sea un string
+        }
+
         if (text.length <= length) {
             return text;
         }

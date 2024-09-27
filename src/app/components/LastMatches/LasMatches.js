@@ -59,7 +59,7 @@ const LastMatches = () => {
             <Slider {...settings}>
                 {matches.map((match) => (
                     <div key={match.fixture.id} className="p-4">
-                        <div className="flex items-center justify-between border rounded p-4">
+                        <div className="flex items-center justify-between border rounded-xl bg-blue-200 mp-4">
                             <div className="flex items-center">
                                 <img src={match.teams.home.logo} alt={`${match.teams.home.name} logo`} className="w-16 h-16 mr-4" />
                                 <p><strong>{match.teams.home.name}</strong></p>
